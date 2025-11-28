@@ -59,15 +59,15 @@ interface CustomTooltipProps {
 // ===== API CONFIGURATION =====
 
 const API_CONFIG = {
-  // Alpha Vantage API (Free tier: 25 requests/day)
-  ALPHA_VANTAGE_KEY: 'FIOJCC6XBXNMBBGJ', // Replace with your API key
-  ALPHA_VANTAGE_URL: 'https://www.alphavantage.co/query',
-  
-  // Finnhub API (Alternative - 60 requests/minute free)
-  FINNHUB_KEY: 'd4jufg1r01qgcb0vld4gd4jufg1r01qgcb0vld50', // Replace with your API key
-  FINNHUB_URL: 'https://finnhub.io/api/v1',
-  
-  USE_MOCK: true // Set to false to use real APIs
+  alphaVantage: {
+    key: process.env.REACT_APP_ALPHA_VANTAGE_KEY,
+    url: process.env.REACT_APP_ALPHA_VANTAGE_URL,
+  },
+  finnhub: {
+    key: process.env.REACT_APP_FINNHUB_KEY,
+    url: process.env.REACT_APP_FINNHUB_URL,
+  },
+  useMock: process.env.REACT_APP_USE_MOCK === 'true',
 };
 
 // ===== REAL API SERVICE =====
