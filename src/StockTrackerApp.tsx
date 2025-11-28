@@ -66,7 +66,7 @@ const API_CONFIG = {
     key: process.env.REACT_APP_FINNHUB_KEY,
     url: process.env.REACT_APP_FINNHUB_URL,
   },
-  USE_MOCK: process.env.REACT_APP_USE_MOCK === 'true',
+  USE_MOCK: process.env.REACT_APP_USE_MOCK !== 'false',
 };
 
 // ===== REAL API SERVICE =====
