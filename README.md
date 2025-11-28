@@ -1,4 +1,4 @@
-# Stock Tracker
+# 📈 Stock Tracker
 
 A real-time stock tracker application with ML-powered predictions. This app allows users to monitor stock prices and view predictions based on historical data.
 
@@ -30,120 +30,80 @@ A real-time stock tracker application with ML-powered predictions. This app allo
 ## Installation
 
 1. Clone the repository:
-
-   ```bash
+   ```
    git clone https://github.com/yourusername/stock-tracker.git
    cd stock-tracker
-Install dependencies:
-bash
-Copy
+2. Install dependencies:
+   ```
+   npm install
+3. Set up environment variables:
+   ```
+   cp .env.example .env
+4. Edit the .env file with your API keys:
+   ```
+   REACT_APP_ALPHA_VANTAGE_KEY=your_alpha_vantage_key
+   REACT_APP_FINNHUB_KEY=your_finnhub_key
+   REACT_APP_USE_MOCK=false
+   REACT_APP_ALPHA_VANTAGE_URL=https://www.alphavantage.co/query
+   REACT_APP_FINNHUB_URL=https://finnhub.io/api/v1
+## Sign up for free API keys:
+* [Alpha Vantage](https://www.alphavantage.co/support/#api-key)
+* [Finnhub](https://finnhub.io/)
 
-npm install
-
-
-
-Create a .env file by copying .env.example and add your API keys:
-bash
-Copy
-
-cp .env.example .env
-
-Sign up for free API keys:
-
-Alpha Vantage
-Finnhub
-
-
-Running the Application
+## 🏃 Running the Application
 Development Mode
-bash
-Copy
-
-npm start
-
-This will start the development server at http://localhost:3000.
+   ```
+   npm start
+   ```
 Production Mode
+1. Build the application:
+   ```
+   npm run build
+2. Serve the built application:
+   ```
+   npm install -g serve
+   serve -s build
+## Docker (Optional)
 
+1. Build the Docker image:
+   ```
+   docker build -t stock-tracker-app .
+2. Run the Docker container:
+   ```
+   docker run -p 3000:3000 --env-file .env stock-tracker-app
+## 💻 Usage
+1. Select a stock symbol from the dropdown menu.
+2. Click "Add" to start tracking the stock.
+3. Click on any stock card to view its price chart.
+4. Toggle predictions on/off using the "Predictions" button.
+5. Use the dark/light mode toggle for better visibility.
 
-Build the application:
-bash
-Copy
+## 📦 Dependencies
+* React
+* Recharts (for charts)
+* Lucide React (for icons)
+* TypeScript
 
-npm run build
-
-
-
-Serve the built application:
-bash
-Copy
-
-npm install -g serve
-serve -s build
-
-
-Docker (Optional)
-
-
-Build the Docker image:
-bash
-Copy
-
-docker build -t stock-tracker-app .
-
-
-
-Run the Docker container:
-bash
-Copy
-
-docker run -p 3000:3000 --env-file .env stock-tracker-app
-
-
-
-Usage
-
-Select a stock symbol from the dropdown menu.
-Click "Add" to start tracking the stock.
-Click on any stock card to view its price chart.
-Toggle predictions on/off using the "Predictions" button.
-Use the dark/light mode toggle for better visibility.
-
-Project Structure
-Copy
-
-stock-tracker/
-├── public/                  # Public assets
-├── src/
-│   ├── components/           # React components
-│   ├── services/             # API services
-│   ├── App.tsx               # Main application component
-│   └── index.tsx             # Entry point
-├── .env.example              # Example environment variables
-├── .gitignore                 # Git ignore rules
-├── Dockerfile                # Docker configuration
-├── package.json              # Project dependencies
-└── README.md                 # Project documentation
-
-
-Dependencies
-
-React
-Recharts (for charts)
-Lucide React (for icons)
-TypeScript
-
-Contributing
+## 🤝 Contributing
 Contributions are welcome! Please follow these steps:
 
-Fork the repository.
-Create a new branch (git checkout -b feature-branch).
-Make your changes.
-Commit your changes (git commit -m 'Add some feature').
-Push to the branch (git push origin feature-branch).
-Open a pull request.
+## 1. Fork the repository.
+## 2. Create a new branch:
+```
+git checkout -b feature-branch
+```
+## 3. Make your changes.
+```
+git commit -m 'Add some feature'
+```
+## 4. Push to the branch 
+```
+git push origin feature-branch
+```
+## 5. Open a pull request.
 
-License
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📄 License
+This project is licensed under the MIT License.
 
-Contact
-For questions or feedback, please contact your-email@example.com.
+## 📧 Contact
+For questions or feedback, please contact bayocotjuancarlos@gmail.com
