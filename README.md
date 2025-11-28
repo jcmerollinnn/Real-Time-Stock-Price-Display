@@ -1,46 +1,109 @@
-# Getting Started with Create React App
+# 📈 Stock Tracker
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A real-time stock tracker application with ML-powered predictions. This app allows users to monitor stock prices and view predictions based on historical data.
 
-## Available Scripts
+![Stock Tracker Screenshot](https://github.com/jcmerollinnn/lightreach/blob/master/Screenshot%202025-11-28%20133712.png)
+![Stock Tracker Screenshot](https://github.com/jcmerollinnn/lightreach/blob/master/Screenshot%202025-11-28%20133716.png)
 
-In the project directory, you can run:
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Features
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- Real-time stock price tracking
+- Interactive stock cards
+- Price charts with historical data
+- ML-powered price predictions
+- Dark/light mode toggle
+- Responsive design
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Prerequisites
 
-### `npm run build`
+- Node.js (v16 or higher)
+- npm or yarn
+- Docker (optional, for containerized deployment)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Installation
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/stock-tracker.git
+   cd stock-tracker
+2. Install dependencies:
+   ```
+   npm install
+3. Set up environment variables:
+   ```
+   cp .env.example .env
+4. Edit the .env file with your API keys:
+   ```
+   REACT_APP_ALPHA_VANTAGE_KEY=your_alpha_vantage_key
+   REACT_APP_FINNHUB_KEY=your_finnhub_key
+   REACT_APP_USE_MOCK=false
+   REACT_APP_ALPHA_VANTAGE_URL=https://www.alphavantage.co/query
+   REACT_APP_FINNHUB_URL=https://finnhub.io/api/v1
+## Sign up for free API keys:
+* [Alpha Vantage](https://www.alphavantage.co/support/#api-key)
+* [Finnhub](https://finnhub.io/)
 
-### `npm run eject`
+## 🏃 Running the Application
+Development Mode
+   ```
+   npm start
+   ```
+Production Mode
+1. Build the application:
+   ```
+   npm run build
+2. Serve the built application:
+   ```
+   npm install -g serve
+   serve -s build
+## Docker (Optional)
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+1. Build the Docker image:
+   ```
+   docker build -t stock-tracker-app .
+2. Run the Docker container:
+   ```
+   docker run -p 3000:3000 --env-file .env stock-tracker-app
+## 💻 Usage
+1. Select a stock symbol from the dropdown menu.
+2. Click "Add" to start tracking the stock.
+3. Click on any stock card to view its price chart.
+4. Toggle predictions on/off using the "Predictions" button.
+5. Use the dark/light mode toggle for better visibility.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📦 Dependencies
+* React
+* Recharts (for charts)
+* Lucide React (for icons)
+* TypeScript
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## 🤝 Contributing
+Contributions are welcome! Please follow these steps:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## 1. Fork the repository.
+## 2. Create a new branch:
+```
+git checkout -b feature-branch
+```
+## 3. Make your changes.
+```
+git commit -m 'Add some feature'
+```
+## 4. Push to the branch 
+```
+git push origin feature-branch
+```
+## 5. Open a pull request.
 
-## Learn More
+## 📄 License
+This project is licensed under the MIT License.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 📧 Contact
+For questions or feedback, please contact bayocotjuancarlos@gmail.com
