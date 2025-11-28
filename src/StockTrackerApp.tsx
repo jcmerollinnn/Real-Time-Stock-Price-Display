@@ -3,7 +3,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { TrendingUp, TrendingDown, Plus, X, RefreshCw, AlertCircle, Moon, Sun } from 'lucide-react';
 
 // ===== TYPESCRIPT INTERFACES =====
-
 interface StockPrice {
   symbol: string;
   price: number;
@@ -43,6 +42,7 @@ interface Stock {
 interface StockCardProps {
   stock: Stock;
   onRemove: () => void;
+  onSelect: () => void;
   showPredictions: boolean;
   isDark: boolean;
 }
@@ -57,46 +57,65 @@ interface CustomTooltipProps {
 }
 
 // ===== API CONFIGURATION =====
-
 const API_CONFIG = {
-  alphaVantage: {
+  ALPHAVANTAGE: {
     key: process.env.REACT_APP_ALPHA_VANTAGE_KEY,
     url: process.env.REACT_APP_ALPHA_VANTAGE_URL,
   },
-  finnhub: {
+  FINNHUB: {
     key: process.env.REACT_APP_FINNHUB_KEY,
     url: process.env.REACT_APP_FINNHUB_URL,
   },
-  useMock: process.env.REACT_APP_USE_MOCK === 'true',
+  USE_MOCK: process.env.REACT_APP_USE_MOCK === 'true',
 };
 
 // ===== REAL API SERVICE =====
-
 class StockAPIService {
   private cache: Map<string, { data: any; timestamp: number }> = new Map();
   private readonly CACHE_DURATION = 60000; // 1 minute cache
-  
+
   async fetchStockPrice(symbol: string): Promise<StockPrice> {
     if (API_CONFIG.USE_MOCK) {
       return this.mockFetchStockPrice(symbol);
     }
-    
     try {
-      // Using Alpha Vantage GLOBAL_QUOTE endpoint
-      const url = `${API_CONFIG.ALPHA_VANTAGE_URL}?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_CONFIG.ALPHA_VANTAGE_KEY}`;
+      // Use Finnhub /quote endpoint
+      const url = `${API_CONFIG.FINNHUB.url}/quote?symbol=${symbol}&token=${API_CONFIG.FINNHUB.key}`;
       const response = await fetch(url);
-      
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
-      
+      const data = await response.json();
+      return {
+        symbol,
+        price: data.c, // Current price
+        timestamp: Date.now(),
+        volume: data.v, // Volume
+        change: ((data.c - data.pc) / data.pc) * 100, // Calculate percentage change
+        high: data.h,   // High price
+        low: data.l,    // Low price
+        open: data.o    // Open price
+      };
+    } catch (error) {
+      console.error('Finnhub API fetch error:', error);
+      // Fallback to Alpha Vantage if Finnhub fails
+      return this.fetchStockPriceAlphaVantage(symbol);
+    }
+  }
+
+  // Fallback method to fetch stock price using Alpha Vantage
+  async fetchStockPriceAlphaVantage(symbol: string): Promise<StockPrice> {
+    try {
+      const url = `${API_CONFIG.ALPHAVANTAGE.url}?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_CONFIG.ALPHAVANTAGE.key}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
       const data = await response.json();
       const quote = data['Global Quote'];
-      
       if (!quote || Object.keys(quote).length === 0) {
         throw new Error('No data available for symbol');
       }
-      
       return {
         symbol,
         price: parseFloat(quote['05. price']),
@@ -108,34 +127,28 @@ class StockAPIService {
         open: parseFloat(quote['02. open'])
       };
     } catch (error) {
-      console.error('API fetch error:', error);
+      console.error('Alpha Vantage API fetch error:', error);
       return this.mockFetchStockPrice(symbol);
     }
   }
-  
+
   async fetchHistoricalData(symbol: string, points: number = 20): Promise<ChartDataPoint[]> {
     if (API_CONFIG.USE_MOCK) {
       return this.mockFetchHistoricalData(symbol, points);
     }
-    
     try {
-      // Using Alpha Vantage INTRADAY endpoint
-      const url = `${API_CONFIG.ALPHA_VANTAGE_URL}?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=5min&apikey=${API_CONFIG.ALPHA_VANTAGE_KEY}`;
+      // Use Alpha Vantage INTRADAY endpoint
+      const url = `${API_CONFIG.ALPHAVANTAGE.url}?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=5min&apikey=${API_CONFIG.ALPHAVANTAGE.key}`;
       const response = await fetch(url);
-      
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
-      
       const data = await response.json();
       const timeSeries = data['Time Series (5min)'];
-      
       if (!timeSeries) {
         throw new Error('No historical data available');
       }
-      
       const entries = Object.entries(timeSeries).slice(0, points);
-      
       return entries.map(([timestamp, values]: [string, any]) => {
         const date = new Date(timestamp);
         return {
@@ -146,15 +159,15 @@ class StockAPIService {
         };
       }).reverse();
     } catch (error) {
-      console.error('Historical data fetch error:', error);
+      console.error('Alpha Vantage historical data fetch error:', error);
       return this.mockFetchHistoricalData(symbol, points);
     }
   }
-  
+
   // Mock implementations for demo/fallback
   private async mockFetchStockPrice(symbol: string): Promise<StockPrice> {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const basePrice: { [key: string]: number } = {
       'AAPL': 175,
       'GOOGL': 140,
@@ -165,11 +178,11 @@ class StockAPIService {
       'META': 485,
       'NFLX': 625
     };
-    
+
     const base = basePrice[symbol] || 100;
     const variance = base * 0.02;
     const price = base + (Math.random() - 0.5) * variance;
-    
+
     return {
       symbol,
       price: parseFloat(price.toFixed(2)),
@@ -178,10 +191,10 @@ class StockAPIService {
       change: parseFloat(((Math.random() - 0.5) * 5).toFixed(2))
     };
   }
-  
+
   private async mockFetchHistoricalData(symbol: string, points: number = 20): Promise<ChartDataPoint[]> {
     await new Promise(resolve => setTimeout(resolve, 300));
-    
+
     const basePrice: { [key: string]: number } = {
       'AAPL': 175,
       'GOOGL': 140,
@@ -192,16 +205,16 @@ class StockAPIService {
       'META': 485,
       'NFLX': 625
     };
-    
+
     const base = basePrice[symbol] || 100;
     const data: ChartDataPoint[] = [];
     let currentPrice = base * 0.95;
     const now = Date.now();
-    
+
     for (let i = points; i >= 0; i--) {
       const variance = base * 0.01;
       currentPrice += (Math.random() - 0.45) * variance;
-      
+
       data.push({
         timestamp: now - (i * 60000),
         time: new Date(now - (i * 60000)).toLocaleTimeString(),
@@ -209,17 +222,16 @@ class StockAPIService {
         actual: parseFloat(currentPrice.toFixed(2))
       });
     }
-    
+
     return data;
   }
 }
 
 // ===== ML PREDICTION SERVICE =====
-
 class MLPredictionService {
   async predictPrices(symbol: string, historicalData: ChartDataPoint[]): Promise<MLPrediction> {
     await new Promise(resolve => setTimeout(resolve, 400));
-    
+
     if (historicalData.length === 0) {
       return {
         predictions: [],
@@ -227,27 +239,27 @@ class MLPredictionService {
         confidence: 0
       };
     }
-    
+
     // Simple linear regression for trend prediction
     const prices = historicalData.map(d => d.price || d.actual || 0);
     const lastPrice = prices[prices.length - 1];
-    
+
     // Calculate trend using last 5 data points
     const recentPrices = prices.slice(-5);
     const avgChange = recentPrices.reduce((acc, price, idx) => {
       if (idx === 0) return acc;
       return acc + (price - recentPrices[idx - 1]);
     }, 0) / (recentPrices.length - 1);
-    
+
     const trend = avgChange > 0 ? 'up' : avgChange < 0 ? 'down' : 'neutral';
     const momentum = Math.abs(avgChange) / lastPrice;
     const predictions: ChartDataPoint[] = [];
-    
+
     // Generate 5 prediction points
     for (let i = 1; i <= 5; i++) {
       const predicted = lastPrice + (avgChange * i * (0.8 + Math.random() * 0.4));
       const timestamp = historicalData[historicalData.length - 1].timestamp + (i * 60000);
-      
+
       predictions.push({
         timestamp,
         time: new Date(timestamp).toLocaleTimeString(),
@@ -255,7 +267,7 @@ class MLPredictionService {
         isPrediction: true
       });
     }
-    
+
     return {
       predictions,
       trend: trend as 'up' | 'down' | 'neutral',
@@ -269,14 +281,14 @@ const stockAPI = new StockAPIService();
 const mlService = new MLPredictionService();
 
 // ===== COMPONENTS =====
-
-const StockCard: React.FC<StockCardProps> = ({ stock, onRemove, showPredictions, isDark }) => {
+const StockCard: React.FC<StockCardProps> = ({ stock, onRemove, onSelect, showPredictions, isDark }) => {
   const isPositive = stock.change >= 0;
   const trendColor = stock.trend === 'up' ? 'text-green-500' : 'text-red-500';
-  
+
   return (
-    <div 
-      className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-4 border-l-4`}
+    <div
+      onClick={onSelect}
+      className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-4 border-l-4 cursor-pointer`}
       style={{ borderLeftColor: isPositive ? '#22c55e' : '#ef4444' }}
     >
       <div className="flex justify-between items-start mb-3">
@@ -287,14 +299,17 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onRemove, showPredictions,
           <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Live Price</p>
         </div>
         <button
-          onClick={onRemove}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent the card click event from firing when removing a stock
+            onRemove();
+          }}
           className={`${isDark ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'} transition-colors`}
           aria-label="Remove stock"
         >
           <X size={20} />
         </button>
       </div>
-      
+
       <div className="mb-3">
         <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
           ${stock.currentPrice?.toFixed(2) || '0.00'}
@@ -304,7 +319,7 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onRemove, showPredictions,
           {isPositive ? '+' : ''}{stock.change}%
         </div>
       </div>
-      
+
       {showPredictions && stock.mlData && (
         <div className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'} rounded p-2 text-sm`}>
           <div className="flex items-center justify-between">
@@ -315,7 +330,7 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onRemove, showPredictions,
           </div>
         </div>
       )}
-      
+
       {stock.error && (
         <div className="flex items-center gap-2 text-sm text-red-600 mt-2">
           <AlertCircle size={14} />
@@ -328,9 +343,9 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onRemove, showPredictions,
 
 const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, isDark }) => {
   if (!active || !payload || !payload.length) return null;
-  
+
   const data = payload[0].payload;
-  
+
   return (
     <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-lg p-3`}>
       <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'} mb-1`}>{data.time}</p>
@@ -349,42 +364,68 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, isDark }
 };
 
 // ===== MAIN APP =====
-
 export default function StockTrackerApp() {
   const [isDark, setIsDark] = useState(false);
   const [stocks, setStocks] = useState<Stock[]>([]);
+  const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [selectedSymbol, setSelectedSymbol] = useState('');
   const [showPredictions, setShowPredictions] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [chartData, setChartData] = useState<{ [key: string]: ChartDataPoint[] }>({});
   const [error, setError] = useState('');
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   const availableStocks = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', 'NVDA', 'META', 'NFLX'];
-  
+
+  const addStock = async () => {
+    if (!selectedSymbol || stocks.some(s => s.symbol === selectedSymbol)) {
+      setError('Stock already tracked or invalid symbol');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    const newStock: Stock = {
+      symbol: selectedSymbol,
+      currentPrice: 0,
+      change: 0,
+      trend: 'neutral',
+      mlData: null,
+      lastUpdate: Date.now(),
+      error: false
+    };
+
+    setStocks(prev => [...prev, newStock]);
+    await fetchStockData(selectedSymbol);
+    setSelectedSymbol('');
+    setIsLoading(false);
+  };
+
   const fetchStockData = useCallback(async (symbol: string): Promise<boolean> => {
     try {
       const [priceData, historicalData] = await Promise.all([
         stockAPI.fetchStockPrice(symbol),
         stockAPI.fetchHistoricalData(symbol)
       ]);
-      
+
       let mlData: MLPrediction | null = null;
       if (showPredictions) {
         mlData = await mlService.predictPrices(symbol, historicalData);
       }
-      
+
       let combinedData = [...historicalData];
       if (mlData && mlData.predictions.length > 0) {
         combinedData = [...historicalData, ...mlData.predictions];
       }
-      
+
       setChartData(prev => ({
         ...prev,
         [symbol]: combinedData
       }));
-      
-      setStocks(prev => prev.map(stock => 
+
+      setStocks(prev => prev.map(stock =>
         stock.symbol === symbol
           ? {
               ...stock,
@@ -397,48 +438,22 @@ export default function StockTrackerApp() {
             }
           : stock
       ));
-      
+
       return true;
     } catch (err) {
       console.error(`Error fetching data for ${symbol}:`, err);
-      setStocks(prev => prev.map(stock => 
+      setStocks(prev => prev.map(stock =>
         stock.symbol === symbol ? { ...stock, error: true } : stock
       ));
       return false;
     }
   }, [showPredictions]);
-  
+
   const updateAllStocks = useCallback(async () => {
     if (stocks.length === 0) return;
     await Promise.all(stocks.map(stock => fetchStockData(stock.symbol)));
   }, [stocks, fetchStockData]);
-  
-  const addStock = async () => {
-    if (!selectedSymbol || stocks.some(s => s.symbol === selectedSymbol)) {
-      setError('Stock already tracked or invalid symbol');
-      setTimeout(() => setError(''), 3000);
-      return;
-    }
-    
-    setIsLoading(true);
-    setError('');
-    
-    const newStock: Stock = {
-      symbol: selectedSymbol,
-      currentPrice: 0,
-      change: 0,
-      trend: 'neutral',
-      mlData: null,
-      lastUpdate: Date.now(),
-      error: false
-    };
-    
-    setStocks(prev => [...prev, newStock]);
-    await fetchStockData(selectedSymbol);
-    setSelectedSymbol('');
-    setIsLoading(false);
-  };
-  
+
   const removeStock = (symbol: string) => {
     setStocks(prev => prev.filter(s => s.symbol !== symbol));
     setChartData(prev => {
@@ -446,8 +461,18 @@ export default function StockTrackerApp() {
       delete updated[symbol];
       return updated;
     });
+    if (selectedStock && selectedStock.symbol === symbol) {
+      setSelectedStock(null);
+    }
   };
-  
+
+  // Initialize selected stock when stocks array changes
+  useEffect(() => {
+    if (stocks.length > 0 && !selectedStock) {
+      setSelectedStock(stocks[0]);
+    }
+  }, [stocks, selectedStock]);
+
   useEffect(() => {
     if (stocks.length > 0) {
       updateIntervalRef.current = setInterval(updateAllStocks, 5000);
@@ -458,21 +483,18 @@ export default function StockTrackerApp() {
       };
     }
   }, [stocks.length, updateAllStocks]);
-  
+
   useEffect(() => {
     if (stocks.length > 0) {
       updateAllStocks();
     }
   }, [showPredictions]);
-  
-  const selectedStock = stocks[0];
-  const selectedChartData = selectedStock ? chartData[selectedStock.symbol] || [] : [];
-  
+
   const bgClass = isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-indigo-100';
   const cardBg = isDark ? 'bg-gray-800' : 'bg-white';
   const textPrimary = isDark ? 'text-white' : 'text-gray-800';
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600';
-  
+
   return (
     <div className={`min-h-screen ${bgClass} p-4 md:p-8 transition-colors duration-300`}>
       <div className="max-w-7xl mx-auto">
@@ -494,7 +516,7 @@ export default function StockTrackerApp() {
             </button>
           </div>
         </div>
-        
+
         {/* Controls */}
         <div className={`${cardBg} rounded-xl shadow-lg p-6 mb-6`}>
           <div className="flex flex-col md:flex-row gap-4">
@@ -533,7 +555,7 @@ export default function StockTrackerApp() {
                 </p>
               )}
             </div>
-            
+
             <div className="flex items-end">
               <button
                 onClick={() => setShowPredictions(!showPredictions)}
@@ -548,7 +570,7 @@ export default function StockTrackerApp() {
             </div>
           </div>
         </div>
-        
+
         {/* Stock Cards */}
         {stocks.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -557,28 +579,29 @@ export default function StockTrackerApp() {
                 key={stock.symbol}
                 stock={stock}
                 onRemove={() => removeStock(stock.symbol)}
+                onSelect={() => setSelectedStock(stock)}
                 showPredictions={showPredictions}
                 isDark={isDark}
               />
             ))}
           </div>
         )}
-        
+
         {/* Chart */}
-        {selectedStock && selectedChartData.length > 0 && (
+        {selectedStock && chartData[selectedStock.symbol] && (
           <div className={`${cardBg} rounded-xl shadow-lg p-6`}>
             <h2 className={`text-2xl font-bold ${textPrimary} mb-4`}>
               {selectedStock.symbol} Price Chart
             </h2>
             <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={selectedChartData}>
+              <LineChart data={chartData[selectedStock.symbol]}>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#e5e7eb'} />
-                <XAxis 
-                  dataKey="time" 
+                <XAxis
+                  dataKey="time"
                   stroke={isDark ? '#9ca3af' : '#6b7280'}
                   style={{ fontSize: '12px' }}
                 />
-                <YAxis 
+                <YAxis
                   stroke={isDark ? '#9ca3af' : '#6b7280'}
                   style={{ fontSize: '12px' }}
                   domain={['auto', 'auto']}
@@ -610,7 +633,7 @@ export default function StockTrackerApp() {
             </ResponsiveContainer>
           </div>
         )}
-        
+
         {/* Empty State */}
         {stocks.length === 0 && (
           <div className={`${cardBg} rounded-xl shadow-lg p-12 text-center`}>
