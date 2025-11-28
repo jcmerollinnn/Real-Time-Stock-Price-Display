@@ -2,7 +2,9 @@
 
 A real-time stock tracker application with ML-powered predictions. This app allows users to monitor stock prices and view predictions based on historical data.
 
-![Stock Tracker Screenshot](<img width="1911" height="918" alt="screenshot.png" src="https://github.com/user-attachments/assets/b774f926-ef7e-4c52-bbfa-b0869003365a" />)
+![Stock Tracker Screenshot](https://github.com/jcmerollinnn/lightreach/blob/master/Screenshot%202025-11-28%20133712.png)
+![Stock Tracker Screenshot](https://github.com/jcmerollinnn/lightreach/blob/master/Screenshot%202025-11-28%20133716.png)
+
 
 ---
 
