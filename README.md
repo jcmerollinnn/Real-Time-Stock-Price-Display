@@ -31,7 +31,7 @@ A real-time stock tracker application with ML-powered predictions. This app allo
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/stock-tracker.git
+   git clone https://github.com/jcmerollinnn/stock-tracker.git
    cd stock-tracker
 2. Install dependencies:
    ```
