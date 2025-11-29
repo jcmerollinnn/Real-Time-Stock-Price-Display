@@ -32,7 +32,7 @@ A real-time stock tracker application with ML-powered predictions. This app allo
 1. Clone the repository:
    ```
    git clone https://github.com/jcmerollinnn/Real-Time-Stock-Price-Display.git
-   cd stock-tracker
+   cd Real-Time-Stock-Price-Display
 2. Install dependencies:
    ```
    npm install
