@@ -67,10 +67,10 @@ Production Mode
 
 1. Build the Docker image:
    ```
-   docker build -t stock-tracker-app .
+   docker build -t Real-Time-Stock-Price-Display 
 2. Run the Docker container:
    ```
-   docker run -p 3000:3000 --env-file .env stock-tracker-app
+   docker run -p 3000:3000 --env-file .env Real-Time-Stock-Price-Display
 ## 💻 Usage
 1. Select a stock symbol from the dropdown menu.
 2. Click "Add" to start tracking the stock.
